@@ -11,7 +11,11 @@
   outputs = { self, nixpkgs, opam-repository, opam-nix }: {
     legacyPackages.x86_64-linux = let
       on = opam-nix.lib.x86_64-linux;
-      pkg = name: version: (on.queryToScope { } { ${name} = version; }).${name};
+      pkg = name: version:
+        (on.queryToScope { } {
+          ${name} = version;
+          ocaml-base-compiler = null;
+        }).${name};
       allPkgs =
         builtins.mapAttrs (_: nixpkgs.lib.last) (on.listRepo opam-repository);
     in builtins.mapAttrs pkg allPkgs;
