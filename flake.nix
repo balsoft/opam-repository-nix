@@ -7,17 +7,20 @@
 
     opam-nix.inputs.nixpkgs.follows = "nixpkgs";
     opam-nix.inputs.opam-repository.follows = "opam-repository";
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, nixpkgs, opam-repository, opam-nix }: {
-    legacyPackages.x86_64-linux = let
-      on = opam-nix.lib.x86_64-linux;
-      pkg = name: version:
-        (on.queryToScope { } {
-          ${name} = version;
-          ocaml-base-compiler = null;
-        }).${name};
-      allPkgs =
-        builtins.mapAttrs (_: nixpkgs.lib.last) (on.listRepo opam-repository);
-    in builtins.mapAttrs pkg allPkgs;
-  };
+  outputs = { self, nixpkgs, opam-repository, opam-nix, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system: {
+      legacyPackages = let
+        on = opam-nix.lib.${system};
+        pkg = name: version:
+          (on.queryToScope { } {
+            ${name} = version;
+            ocaml-base-compiler = null;
+          }).${name};
+        allPkgs =
+          builtins.mapAttrs (_: nixpkgs.lib.last) (on.listRepo opam-repository);
+      in builtins.mapAttrs pkg allPkgs;
+    });
 }
